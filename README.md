@@ -9,16 +9,42 @@ This consists of two packages.
 
 It's expected that people will import `merkleized-metadata` in their TS projects.
 
-# Publshing a new version
+# Developer Notes
+
+## Publishing a new version
+
+1. Increment version number in `merkleized-metadata-sys/Cargo.toml`.
+2. Build/publish the raw TS interface:
+   ```
+   cd merkleized-metadata-sys
+   wasm-pack build --release
+   (cd inline_wasm && cargo run -- ../pkg)
+   (cd pkg && npm publish)
+   cd ..
+   ```
+3. Increment version of sys crate used in `merkleized-metadata/package.json`.
+4. `(cd merkleized-metadata && npm i && npm run build && npm publish)` to build/publish the high level TS interface.
+5. Bump versions used in `merkleized-metadata-example` and `(cd merkleized-metadata-example && npm i && npx webpack serve)` to verify it still works;
+
+## Testing updates
+
+The following will build and link everything such that we'll serve and see any changes made in the `merkleized-metadata-example`.
 
 ```
-cd merkleized-metadata-sys
-wasm-pack build
-(cd pkg && npm publish)
-
-cd ..
-
-cd merkleized-metadata
-npm run build
-npm publish
+echo "# Build merkleized-metadata-sys"
+(cd merkleized-metadata-sys && wasm-pack build)
+echo "# Rewrite entrypoint for merkleized-metadata-sys"
+(cd merkleized-metadata-sys/inline_wasm && cargo run -- ../pkg)
+echo "# Link merkleized-metadata-sys"
+(cd merkleized-metadata-sys/pkg && npm link)
+echo "# Install packages in merkleized-metadata"
+(cd merkleized-metadata && npm i && npm link merkleized-metadata-sys)
+echo "# Build merkleized-metadata"
+(cd merkleized-metadata && npm run build)
+echo "# Link merkleized-metadata"
+(cd merkleized-metadata && npm link)
+echo "# Install packages in example"
+(cd merkleized-metadata-example && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
+echo "# Serve example"
+(cd merkleized-metadata-example && npx webpack serve)
 ```

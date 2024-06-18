@@ -19,11 +19,58 @@ pub struct RuntimeMetadata(frame_metadata::RuntimeMetadata);
 impl RuntimeMetadata {
     pub fn from_hex(hex: &str) -> Result<RuntimeMetadata, String> {
         use parity_scale_codec::Decode;
+        const META_RESERVED: u32 = 0x6174656d;
+
+        let hex = hex.strip_prefix("0x").unwrap_or(hex);
         let scale_bytes = hex::decode(hex)
             .map_err(|e| format!("Could not decode the given string into hex bytes: {e}"))?;
-        let metadata = frame_metadata::RuntimeMetadata::decode(&mut &*scale_bytes)
-            .map_err(|e| format!("Could not decode the given bytes into metadata: {e}"))?;
-        Ok(RuntimeMetadata(metadata))
+
+        // Check that all bytes are consumed during decode, and error if this isn't the case.
+        fn decode_consuming_all<T: Decode>(cursor: &mut &[u8], type_name: &str) -> Result<T, String> {
+            let r = T::decode(cursor);
+            if !cursor.is_empty() {
+                return Err(format!("Decoding into {} failed to consume all bytes ({} left)", type_name, cursor.len()).into())
+            }
+            r.map_err(|e| e.to_string())
+        }
+
+        // Option<OpaqueMetadata> comes from metadata.metadata_at_version.
+        let decode_option_opaque = |bytes: &[u8]| {
+            let cursor = &mut &*bytes;
+            decode_consuming_all::<Option::<frame_metadata::OpaqueMetadata>>(cursor, "Option<OpaqueMetadata>").and_then(|option_opaque| {
+                if let Some(opaque) = option_opaque {
+                    decode_consuming_all::<frame_metadata::RuntimeMetadataPrefixed>(&mut &*opaque.0, "RuntimeMetadataPrefixed (from Option<OpaqueMetadata>)")
+                } else {
+                    Err("Expected Option<OpaqueMetadata> to be Some, but got None".into())
+                }
+            })
+        };
+
+        // OpaqueMetadata comes from legacy state.getMetadata.
+        let decode_opaque = |bytes: &[u8]| {
+            let cursor = &mut &*bytes;
+            decode_consuming_all::<frame_metadata::OpaqueMetadata>(cursor, "OpaqueMetadata").and_then(|opaque| {
+                decode_consuming_all::<frame_metadata::RuntimeMetadataPrefixed>(&mut &*opaque.0, "RuntimeMetadataPrefixed (from OpaqueMetadata)")
+            })
+        };
+
+        // Tools like Subxt hand back RuntimeMetadataPrefixed directly.
+        let decode_runtime_metadata_prefixed = |bytes: &[u8]| {
+            let cursor = &mut &*bytes;
+            decode_consuming_all::<frame_metadata::RuntimeMetadataPrefixed>(cursor, "RuntimeMetadataPrefixed (directly)")
+        };
+
+        // Decode in order of runtime API, then legacy RPC, then tools output.
+        let runtime_metadata_prefixed = decode_option_opaque(&*scale_bytes)
+            .or_else(|_| decode_opaque(&*scale_bytes))
+            .or_else(|_| decode_runtime_metadata_prefixed(&*scale_bytes))
+            .map_err(|e| format!("Could not decode metadata bytes into Option<OpaqueMetadata>, OpaqueMetadata or RuntimeMetadataPrefixed: {e}"))?;
+
+        if runtime_metadata_prefixed.0 != META_RESERVED {
+            return Err(format!("RuntimeMetadataPrefixed should begin with {META_RESERVED:#02x} but got {:#02x}", runtime_metadata_prefixed.0).into())
+        }
+
+        Ok(RuntimeMetadata(runtime_metadata_prefixed.1))
     }
 }
 
@@ -69,14 +116,7 @@ impl Type {
     pub fn type_id(&self) -> u32 {
         self.0.type_id.0
     }
-
-    pub fn type_def(&self) -> TypeDef {
-        TypeDef(self.0.type_def.clone())
-    }
 }
-
-#[wasm_bindgen]
-pub struct TypeDef(merkleized_metadata::types::TypeDef);
 
 #[wasm_bindgen]
 pub struct SignedExtrinsicData {

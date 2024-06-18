@@ -8,6 +8,7 @@ import {
     generate_metadata_digest as generate_metadata_digest_sys,
     generate_proof_for_extrinsic as generate_proof_for_extrinsic_sys,
     generate_proof_for_extrinsic_parts as generate_proof_for_extrinsic_parts_sys,
+    init as init_sys,
 } from 'merkleized-metadata-sys'
 
 /**
@@ -143,48 +144,61 @@ export type SignedExtrinsicData = {
     includedInSignedData: string
 }
 
-/**
- * This generates the MetadataDigest for the given metadata. The hash of this digest is what is called the
- * “metadata hash” in [RFC-78](https://polkadot-fellows.github.io/RFCs/approved/0078-merkleized-metadata.html).
- */
-export function generateMetadataDigest(metadata: RuntimeMetadata, extraInfo: ExtraInfo): MetadataDigest {
-    const metadataSys = metadata.__getRuntimeMetadataSys();
-    const extraInfoSys = ExtraInfoSys.from_opts(
-        extraInfo.specVersion,
-        extraInfo.specName,
-        extraInfo.base58Prefix,
-        extraInfo.decimals,
-        extraInfo.tokenSymbol
-    );
-
-    const digest = generate_metadata_digest_sys(metadataSys, extraInfoSys);
-    return new MetadataDigest(digest)
-}
+export type Methods = Awaited<ReturnType<typeof init>>;
 
 /**
- * Generate a proof for the given extrinsic using the given metadata.
+ * Initialize the merkleized-metadata WASM, returning the available methods.
  *
- * If `additional_data` is provided, it will be decoded as well and the required type information are included in the proof.
- *
- * If the full extrinsic is not available, `generateProofForExtrinsicParts` is maybe the better option as it only requires the call and the additional data.
+ * This can safely be called multiple times and will only initialize things once.
  */
-export function generateProofForExtrinsic(extrinsicHex: string, additionalSignedHex: string | undefined, metadata: RuntimeMetadata): Proof {
-    const proof = generate_proof_for_extrinsic_sys(extrinsicHex, additionalSignedHex, metadata.__getRuntimeMetadataSys());
-    return new Proof(proof)
-}
+export function init() {
+    return init_sys().then(() => {
+        return {
+            /**
+             * This generates the MetadataDigest for the given metadata. The hash of this digest is what is called the
+             * “metadata hash” in [RFC-78](https://polkadot-fellows.github.io/RFCs/approved/0078-merkleized-metadata.html).
+             */
+            generateMetadataDigest(metadata: RuntimeMetadata, extraInfo: ExtraInfo): MetadataDigest {
+                const metadataSys = metadata.__getRuntimeMetadataSys();
+                const extraInfoSys = ExtraInfoSys.from_opts(
+                    extraInfo.specVersion,
+                    extraInfo.specName,
+                    extraInfo.base58Prefix,
+                    extraInfo.decimals,
+                    extraInfo.tokenSymbol
+                );
 
-/**
- * Generate a proof for the given extrinsic parts using the given metadata.
- *
- * This generates a proof that contains all the types required to decode an extrinsic that is build using the given `callHex` and `signedExtData`. When `signedExtData` is not
- * undefined, it is assumed that the extrinsic is signed and thus all the signed extension types are included in the proof as well. The same applies for the signature and
- * address types which are only included when `signedExtData` is not undefined.
- */
-export function generateProofForExtrinsicParts(callHex: string, signedExtData: SignedExtrinsicData | undefined, metadata: RuntimeMetadata): Proof {
-    const signedExtDataSys = typeof signedExtData !== "undefined"
-        ? SignedExtrinsicDataSys.from_bytes(signedExtData.includedInExtrinsic, signedExtData.includedInSignedData)
-        : undefined;
+                const digest = generate_metadata_digest_sys(metadataSys, extraInfoSys);
+                return new MetadataDigest(digest)
+            },
 
-    const proof = generate_proof_for_extrinsic_parts_sys(callHex, signedExtDataSys, metadata.__getRuntimeMetadataSys());
-    return new Proof(proof)
+            /**
+             * Generate a proof for the given extrinsic using the given metadata.
+             *
+             * If `additional_data` is provided, it will be decoded as well and the required type information are included in the proof.
+             *
+             * If the full extrinsic is not available, `generateProofForExtrinsicParts` is maybe the better option as it only requires the call and the additional data.
+             */
+            generateProofForExtrinsic(extrinsicHex: string, additionalSignedHex: string | undefined, metadata: RuntimeMetadata): Proof {
+                const proof = generate_proof_for_extrinsic_sys(extrinsicHex, additionalSignedHex, metadata.__getRuntimeMetadataSys());
+                return new Proof(proof)
+            },
+
+            /**
+             * Generate a proof for the given extrinsic parts using the given metadata.
+             *
+             * This generates a proof that contains all the types required to decode an extrinsic that is build using the given `callHex` and `signedExtData`. When `signedExtData` is not
+             * undefined, it is assumed that the extrinsic is signed and thus all the signed extension types are included in the proof as well. The same applies for the signature and
+             * address types which are only included when `signedExtData` is not undefined.
+             */
+            generateProofForExtrinsicParts(callHex: string, signedExtData: SignedExtrinsicData | undefined, metadata: RuntimeMetadata): Proof {
+                const signedExtDataSys = typeof signedExtData !== "undefined"
+                    ? SignedExtrinsicDataSys.from_bytes(signedExtData.includedInExtrinsic, signedExtData.includedInSignedData)
+                    : undefined;
+
+                const proof = generate_proof_for_extrinsic_parts_sys(callHex, signedExtDataSys, metadata.__getRuntimeMetadataSys());
+                return new Proof(proof)
+            }
+        }
+    })
 }
