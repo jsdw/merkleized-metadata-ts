@@ -41,50 +41,44 @@ function Main(args: MainArgs) {
       return digest.hash()
   }, [metadata, base58Prefix, decimals, specName, specVersion, tokenSymbol])
 
-  const decimalsId = useId()
-  const tokenSymbolId = useId()
-  const specVersionId = useId()
-  const specNameId = useId()
-  const base58PrefixId = useId()
-  const metadataId = useId()
-  const txId = useId()
-
   return (
     <main>
       <h1>Merkleized Metadata Example</h1>
       <table>
-        <Row
-          name="Decimals"
-          value={(id) => <input id={id} type='number' value={decimals} onChange={(e) => setDecimals(parseInt(e.target.value) || 0)}/>}
-        />
-        <Row
-          name="Token Symbol"
-          value={(id) => <input id={id} value={tokenSymbol} onChange={(e) => setTokenSymbol(e.target.value)}/>}
-        />
-        <Row
-          name="Spec Version"
-          value={(id) => <input id={id} value={specVersion} onChange={(e) => setSpecVersion(parseInt(e.target.value) || 0)}/>}
-        />
-        <Row
-          name="Spec Name"
-          value={(id) => <input id={id} value={specName} onChange={(e) => setSpecName(e.target.value)}/>}
-        />
-        <Row
-          name="Base58 Prefix"
-          value={(id) => <input id={id} value={base58Prefix} onChange={(e) => setBase58Prefix(parseInt(e.target.value) || 0)}/>}
-        />
-        <Row
-          name="Metadata Hex"
-          value={(id) => <textarea id={id} value={metadata} onChange={(e) => setMetadata(e.target.value)}/>}
-        />
-        <Row
-          name="Transaction Hex"
-          value={(id) => <textarea id={id} value={metadata} onChange={(e) => setTx(e.target.value)}/>}
-        />
-        <Row
-          name="Metadata Hash"
-          value={(id) => digestHash}
-        />
+        <tbody>
+          <Row
+            name="Decimals"
+            value={(id) => <input id={id} type='number' value={decimals} onChange={(e) => setDecimals(parseInt(e.target.value) || 0)}/>}
+          />
+          <Row
+            name="Token Symbol"
+            value={(id) => <input id={id} value={tokenSymbol} onChange={(e) => setTokenSymbol(e.target.value)}/>}
+          />
+          <Row
+            name="Spec Version"
+            value={(id) => <input id={id} value={specVersion} onChange={(e) => setSpecVersion(parseInt(e.target.value) || 0)}/>}
+          />
+          <Row
+            name="Spec Name"
+            value={(id) => <input id={id} value={specName} onChange={(e) => setSpecName(e.target.value)}/>}
+          />
+          <Row
+            name="Base58 Prefix"
+            value={(id) => <input id={id} value={base58Prefix} onChange={(e) => setBase58Prefix(parseInt(e.target.value) || 0)}/>}
+          />
+          <Row
+            name="Metadata Hex"
+            value={(id) => <textarea id={id} value={metadata} onChange={(e) => setMetadata(e.target.value)}/>}
+          />
+          <Row
+            name="Transaction Hex"
+            value={(id) => <textarea id={id} value={metadata} onChange={(e) => setTx(e.target.value)}/>}
+          />
+          <Row
+            name="Metadata Hash"
+            value={(id) => digestHash}
+          />
+        </tbody>
       </table>
     </main>
   );

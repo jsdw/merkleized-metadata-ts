@@ -24,11 +24,11 @@ It's expected that people will import `merkleized-metadata` in their TS projects
    ```
 3. Increment version of sys crate used in `merkleized-metadata/package.json`.
 4. `(cd merkleized-metadata && npm i && npm run build && npm publish)` to build/publish the high level TS interface.
-5. Bump versions used in `merkleized-metadata-example` and `(cd merkleized-metadata-example && npm i && npx webpack serve)` to verify it still works;
+5. Bump versions used in `examples/web` and `(cd examples/web && npm i && npx webpack serve)` to verify it still works;
 
 ## Testing updates
 
-The following will build and link everything such that we'll serve and see any changes made in the `merkleized-metadata-example`.
+The following will build and link everything such that we'll serve and see any changes made in the `examples/web`.
 
 ```
 echo "# Build merkleized-metadata-sys"
@@ -43,8 +43,8 @@ echo "# Build merkleized-metadata"
 (cd merkleized-metadata && npm run build)
 echo "# Link merkleized-metadata"
 (cd merkleized-metadata && npm link)
-echo "# Install packages in example"
-(cd merkleized-metadata-example && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
-echo "# Serve example"
-(cd merkleized-metadata-example && npx webpack serve)
+echo "# Install packages in web example"
+(cd examples/web && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
+echo "# Serve web example"
+(cd examples/web && npx webpack serve)
 ```
