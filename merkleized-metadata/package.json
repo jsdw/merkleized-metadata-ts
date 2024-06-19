@@ -1,6 +1,6 @@
 {
   "name": "merkleized-metadata",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A TS wrapper around the merkleized-metadata crate",
   "type": "module",
   "main": "./dist/index.js",
@@ -17,7 +17,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "merkleized-metadata-sys": "^0.0.7"
+    "merkleized-metadata-sys": "^0.0.8"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

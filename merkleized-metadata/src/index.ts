@@ -84,6 +84,13 @@ export class Proof {
     }
 
     /**
+     * SCALE encode this proof to a hex string.
+     */
+    encode(): String {
+        return this.#proof.encode()
+    }
+
+    /**
      * The leaves of the tree.
      *
      * They are sorted that the left most leaves are first.

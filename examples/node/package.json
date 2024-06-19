@@ -11,6 +11,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "merkleized-metadata": "^0.0.3"
+    "merkleized-metadata": "^0.0.4"
   }
 }

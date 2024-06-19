@@ -1,5 +1,4 @@
-mod utils;
-
+use parity_scale_codec::Encode;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -100,6 +99,10 @@ impl Proof {
 
     pub fn nodes(&self) -> Vec<String> {
         self.0.nodes.iter().map(|hash| hex::encode(hash)).collect()
+    }
+
+    pub fn encode(&self) -> String {
+        hex::encode(self.0.encode())
     }
 }
 
