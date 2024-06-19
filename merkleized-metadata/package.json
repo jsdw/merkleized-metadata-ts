@@ -2,6 +2,8 @@
   "name": "merkleized-metadata",
   "version": "0.0.3",
   "description": "A TS wrapper around the merkleized-metadata crate",
+  "type": "module",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "author": "James Wilson <james@jsdw.me>",

@@ -43,6 +43,8 @@ echo "# Build merkleized-metadata"
 (cd merkleized-metadata && npm run build)
 echo "# Link merkleized-metadata"
 (cd merkleized-metadata && npm link)
+echo "# Install and build node example"
+(cd examples/node && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
 echo "# Install packages in web example"
 (cd examples/web && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
 echo "# Serve web example"
