@@ -1,12 +1,13 @@
 [package]
 name = "merkleized-metadata-sys"
-version = "0.0.8"
+version = "0.1.0"
 authors = ["James Wilson <james@jsdw.me>"]
 edition = "2021"
 license = "Apache-2.0"
 readme = "README.md"
-description = "A raw TS wrapper around the merkleized-metadata crate"
+description = "A raw TS wrapper around the Rust merkleized-metadata crate"
 keywords = ["parity", "polkadot", "metadata", "hashing"]
+repository = "https://github.com/jsdw/merkleized-metadata-ts"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

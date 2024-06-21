@@ -1,6 +1,6 @@
 {
   "name": "merkleized-metadata",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "A TS wrapper around the merkleized-metadata crate",
   "type": "module",
   "main": "./dist/index.js",
@@ -8,6 +8,10 @@
   "types": "./dist/index.d.ts",
   "author": "James Wilson <james@jsdw.me>",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jsdw/merkleized-metadata-ts.git"
+  },
   "files": [
     "./dist/index.js",
     "./dist/index.d.ts"
@@ -17,7 +21,7 @@
     "build": "tsc"
   },
   "dependencies": {
-    "merkleized-metadata-sys": "^0.0.8"
+    "merkleized-metadata-sys": "^0.1.0"
   },
   "devDependencies": {
     "typescript": "^5.4.5"

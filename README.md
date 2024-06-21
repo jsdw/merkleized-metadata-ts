@@ -17,24 +17,34 @@ import { init, RuntimeMetadata } from 'merkleized-metadata'
 // Initialize the package:
 const mm = await init();
 
-// Given some `metadataHex` representing our current metadata,
-// we create a `RuntimeMetadata` object:
-const runtimeMetadata = RuntimeMetadata.fromHex(metadataHex);
+console.log("Initialized")
 
-// Now, given some other details, we can create a metadata hash:
+// Build our metadata object from the hex bytes obtained from
+// state.getMetadata or the runtime API metadata.metadata_at_version(15):
+const runtimeMetadata = RuntimeMetadata.fromHex(METADATA);
+
+// Calculate the metadata digest and then hash it to get the metadata hash
+// that we'd add to the signer payload for the CheckMetadataHash extension:
 const digest = mm.generateMetadataDigest(runtimeMetadata, {
-  base58Prefix, // eg 42 for Substrate
-  decimals,     // eg 12: decimal places used in token.
-  specName,     // eg "rococo"
-  specVersion,  // eg 1000000
-  tokenSymbol,  // eg "DOT"
+  base58Prefix: BASE58_PREFIX, // Eg 0 for Polkadot, 42 for Substrate
+  decimals: DECIMALS,          // Eg 10 for Polkadot
+  specName: SPEC_NAME,         // Eg "polkadot"
+  specVersion: SPEC_VERSION,   // Eg 1_002_004 for Polkadot 1.2.4
+  tokenSymbol: TOKEN_SYMBOL    // Eg "DOT"
 });
+
 console.log("Metadata Hash:", digest.hash())
 
-// We can also create and hex encode the proof that devices like ledger
-// will use to decode the extrinsic again:
-const proof = mm.generateProofForExtrinsic(extrinsicHec, additionalSignedHex, runtimeMetadata);
-console.log("Encoded proof:", proof.encode()
+// We can also build a proof which contains the information needed to
+// decode a given extrinsic. This would be sent to devices like ledgers along
+// with the above hash so that they could decode and use it to display an extrinsic.
+const proof = mm.generateProofForExtrinsic(
+    TX,                   // Hex for the transaction bytes
+    TX_ADDITIONAL_SIGNED, // The bytes that extensions add to the signer payload (optional)
+    runtimeMetadata
+);
+
+console.log("Extrinsic proof:", proof.encode())
 ```
 
 # Developer Notes
@@ -94,7 +104,7 @@ echo "# Build and link merkleized-metadata"
 (cd merkleized-metadata && npm link)
 
 echo "# Install and build node example"
-(cd examples/node && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
+(cd examples/node && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata && npm run start)
 echo "# Install packages in web example"
 (cd examples/web && npm i && npm link merkleized-metadata-sys && npm link merkleized-metadata)
 echo "# Serve web example"

@@ -27,9 +27,22 @@ function Main(args: MainArgs) {
   const [specVersion, setSpecVersion] = useState(defaults.SPEC_VERSION)
   const [specName, setSpecName] = useState(defaults.SPEC_NAME)
   const [base58Prefix, setBase58Prefix] = useState(defaults.BASE58_PREFIX)
+  const [additionalSigned, setAdditionalSigned] = useState(defaults.TX_ADDITIONAL_SIGNED)
+
+  const runtimeMetadata = useMemo(() => {
+    try {
+      return RuntimeMetadata.fromHex(metadata);
+    } catch (e) {
+      return "Error decoding metadata:" + String(e)
+    }
+  }, [metadata])
 
   const digestHash = useMemo(() => {
-      const runtimeMetadata = RuntimeMetadata.fromHex(metadata);
+    if (typeof runtimeMetadata === "string") {
+      return "Invalid runtime metadata"
+    }
+
+    try {
       const digest = mm.generateMetadataDigest(runtimeMetadata, {
         base58Prefix,
         decimals,
@@ -39,7 +52,22 @@ function Main(args: MainArgs) {
       })
 
       return digest.hash()
-  }, [metadata, base58Prefix, decimals, specName, specVersion, tokenSymbol])
+    } catch (e) {
+      return "Error computing metadata hash: " + String(e)
+    }
+  }, [runtimeMetadata, base58Prefix, decimals, specName, specVersion, tokenSymbol])
+
+  const extrinsicProof = useMemo(() => {
+    if (typeof runtimeMetadata === "string") {
+      return "Invalid runtime metadata"
+    }
+
+    try {
+      return mm.generateProofForExtrinsic(tx, additionalSigned || undefined, runtimeMetadata).encode()
+    } catch (e) {
+      return "Error computing extrinsic proof: " + String(e)
+    }
+  }, [runtimeMetadata, tx, additionalSigned])
 
   return (
     <main>
@@ -72,11 +100,19 @@ function Main(args: MainArgs) {
           />
           <Row
             name="Transaction Hex"
-            value={(id) => <textarea id={id} value={metadata} onChange={(e) => setTx(e.target.value)}/>}
+            value={(id) => <textarea id={id} value={tx} onChange={(e) => setTx(e.target.value)}/>}
+          />
+          <Row
+            name="Additional Signed Hex"
+            value={(id) => <textarea id={id} value={additionalSigned} onChange={(e) => setAdditionalSigned(e.target.value)}/>}
           />
           <Row
             name="Metadata Hash"
             value={(id) => digestHash}
+          />
+          <Row
+            name="Extrinsic Proof"
+            value={(id) => extrinsicProof}
           />
         </tbody>
       </table>
@@ -94,8 +130,8 @@ function Row(args: RowArgs) {
 
   return (
     <tr>
-      <td><label htmlFor={id}>{args.name}</label></td>
-      <td>{args.value(id)}</td>
+      <td className="key"><label htmlFor={id}>{args.name}</label></td>
+      <td className="value">{args.value(id)}</td>
     </tr>
   )
 }

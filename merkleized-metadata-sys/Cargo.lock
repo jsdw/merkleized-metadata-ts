@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "merkleized-metadata-sys"
-version = "0.0.8"
+version = "0.1.0"
 dependencies = [
  "frame-metadata",
  "hex",
